@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Practice Questions</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        .question-block { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9;}
+        textarea { width: 100%; height: 80px; margin-top: 10px; }
+        .options { margin-top: 10px; }
+        .remark-block { margin-top: 15px; padding: 10px; background: #e0f7fa; display: none; border-left: 4px solid #00acc1; }
+        button { padding: 10px 15px; cursor: pointer; margin-top: 20px;}
+    </style>
+</head>
+
+<body>
+
+    <h2>Recommended Practice</h2>
+    <p>Practice your weak areas below. Submit when finished to get AI remarks on your performance.</p>
+
+    <div id="practice"></div>
+
+    <button id="submitBtn" onclick="submitPractice()" style="display:none;">Submit Answers</button>
+
+    <button onclick="window.location='report.html'" style="margin-left: 10px;">Return to Report</button>
+    <button onclick="window.location='dashboard.html'" style="margin-left: 10px;">Go To Dashboard</button>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+            alert("Please login first")
+            window.location = "login.html"
+        }
+
+        let practiceQuestions = [];
+
+        async function loadPractice() {
+
+            let weaknesses = JSON.parse(localStorage.getItem("weaknesses") || "[]")
+
+            let res = await fetch("http://127.0.0.1:8000/practice_questions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ weaknesses: weaknesses })
+            })
+
+            let data = await res.json()
+            practiceQuestions = data.practice;
+
+            let html = ""
+
+            practiceQuestions.forEach((q, idx) => {
+                html += `<div class="question-block" id="qb-${idx}">`
+                html += `<h3>${q.topic}</h3>`
+                html += `<p><strong>Q:</strong> ${q.question}</p>`
+
+                if (q.type === "mcq") {
+                    html += `<div class="options">`
+                    q.options.forEach((opt, optIdx) => {
+                        html += `
+                            <label style="display:block; margin-bottom:5px;">
+                                <input type="radio" name="ans-${idx}" value="${opt}"> ${opt}
+                            </label>
+                        `
+                    })
+                    html += `</div>`
+                } else {
+                    html += `<textarea id="ans-${idx}" placeholder="Type your answer here..."></textarea>`
+                }
+
+                html += `<div id="remark-${idx}" class="remark-block"></div>`
+                html += `</div>`
+            })
+
+            document.getElementById("practice").innerHTML = html
+
+            if (practiceQuestions.length > 0) {
+                document.getElementById("submitBtn").style.display = "inline-block";
+            } else {
+                document.getElementById("practice").innerHTML = "<p>No weak areas detected! You are fully prepared.</p>";
+            }
+
+        }
+
+        async function submitPractice() {
+            let answersPayload = [];
+            let submitBtn = document.getElementById("submitBtn");
+            submitBtn.innerText = "Evaluating...";
+            submitBtn.disabled = true;
+
+            for (let idx = 0; idx < practiceQuestions.length; idx++) {
+                let q = practiceQuestions[idx];
+                let userAns = "";
+
+                if (q.type === "mcq") {
+                    let selected = document.querySelector(`input[name="ans-${idx}"]:checked`);
+                    if (selected) userAns = selected.value;
+                } else {
+                    userAns = document.getElementById(`ans-${idx}`).value;
+                }
+
+                let answerObj = {
+                    ...q,
+                    user_answer: userAns
+                };
+                answersPayload.push(answerObj);
+            }
+
+            let res = await fetch("http://127.0.0.1:8000/evaluate_practice", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ answers: answersPayload })
+            })
+
+            let data = await res.json()
+            
+            data.remarks.forEach((remarkObj, idx) => {
+                let rblock = document.getElementById(`remark-${idx}`);
+                rblock.style.display = "block";
+                rblock.innerHTML = `<strong>Feedback:</strong> ${remarkObj.remark}`;
+            });
+
+            submitBtn.innerText = "Evaluated";
+        }
+
+        loadPractice()
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Interview Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 60%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h2>Interview Dashboard</h2>
+
+    <button onclick="startInterview()">Start New Interview</button>
+
+    <h3>Previous Interviews</h3>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Aptitude</th>
+                <th>DSA</th>
+                <th>Technical</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody id="history"></tbody>
+
+    </table>
+    <h3>Skill Trend</h3>
+
+    <div id="trend"></div>
+    <button onclick="logout()">Logout</button>
+
+    <script>
+        const params = new URLSearchParams(window.location.search)
+
+        const urlToken = params.get("token")
+        const email = params.get("email")
+
+        if (urlToken) {
+            localStorage.setItem("token", urlToken)
+            localStorage.setItem("userEmail", email)
+        }
+
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+
+
+        function logout() {
+
+            localStorage.removeItem("token")
+            localStorage.removeItem("userEmail")
+
+            window.location = "login.html"
+
+        }
+
+        async function loadHistory() {
+
+            let userEmail = localStorage.getItem("userEmail")
+            let token = localStorage.getItem("token")
+
+            let res = await fetch("http://127.0.0.1:8000/history/" + userEmail, {
+                headers: {
+                    "Authorization": token
+                }
+            })
+
+            let data = await res.json()
+
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            let html = ""
+
+            data.forEach(item => {
+
+                let total =
+                    item.aptitude_score +
+                    item.dsa_score +
+                    item.technical_score
+
+                html += "<tr>"
+
+                html += "<td>" + item.aptitude_score + "</td>"
+                html += "<td>" + item.dsa_score + "</td>"
+                html += "<td>" + item.technical_score + "</td>"
+                html += "<td>" + total + "</td>"
+
+                html += "</tr>"
+
+            })
+
+            document.getElementById("history").innerHTML = html
+
+        }
+
+        function startInterview() {
+
+            window.location = "index.html"
+
+        }
+
+        loadHistory()
+        async function loadTrend() {
+
+            let userEmail = localStorage.getItem("userEmail")
+
+            let res = await fetch(
+                "http://127.0.0.1:8000/trend/" + userEmail
+            )
+
+            let data = await res.json()
+
+            let html = ""
+
+            data.trend.forEach((t, i) => {
+
+                html +=
+                    "Interview " + (i + 1) +
+                    " → Aptitude: " + t.aptitude +
+                    " | DSA: " + t.dsa +
+                    " | Technical: " + t.technical +
+                    "<br>"
+
+            })
+
+            document.getElementById("trend").innerHTML = html
+
+        }
+
+        loadTrend()
+    </script>
+
+</body>
+
+</html>

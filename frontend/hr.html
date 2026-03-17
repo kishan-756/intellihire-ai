@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>HR Round</title>
+    <style>
+        #progress {
+
+            background: #eee;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>HR Round</h2>
+
+    <div id="progress">
+        Round 4 / 4 : HR
+    </div>
+    <h3 id="timer"></h3>
+    <div id="question"></div>
+
+    <textarea id="answer"></textarea>
+    <br>
+    <button onclick="next()">Next</button>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+        let time = 600; // 10 minutes
+
+        setInterval(() => {
+
+            time--;
+            
+            let minutes = Math.floor(time / 60);
+            let seconds = time % 60;
+
+            if (document.getElementById("timer")) {
+                document.getElementById("timer").innerText =
+                    "Time Remaining: " + minutes + "m " + seconds + "s";
+            }
+
+            if (time <= 0) {
+
+                alert("Time Up");
+
+                window.location = "report.html";
+
+            }
+
+        }, 1000);
+
+        let questions = [
+            "Tell me about yourself",
+            "Why should we hire you",
+            "Describe a challenge you faced"
+        ]
+
+        let index = 0
+
+        function show() {
+            document.getElementById("question").innerText = questions[index]
+        }
+
+        function next() {
+
+            index++
+
+            document.getElementById("answer").value = ""
+
+            if (index < questions.length) {
+                show()
+            }
+            else {
+                window.location = "report.html"
+            }
+
+        }
+
+        show()
+
+    </script>
+
+</body>
+
+</html>

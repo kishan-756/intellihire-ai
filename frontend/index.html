@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Resume Analysis</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        button {
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        #resume_feedback {
+            margin-top: 20px;
+            background: #f4f4f4;
+            padding: 15px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h2>Upload Resume</h2>
+
+    <form id="resumeForm">
+
+        <input type="file" id="resume"><br><br>
+
+        <input type="text" id="job" placeholder="Enter job skills (comma separated)">
+
+        <br><br>
+
+        <button type="submit">Analyze Resume</button>
+
+    </form>
+
+
+    <h3 id="analysis"></h3>
+
+    <div id="resume_feedback"></div>
+
+    <br>
+
+    <button onclick="startInterview()">Start Interview</button>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+
+        let missingSkills = []
+
+        document.getElementById("resumeForm")
+            .addEventListener("submit", analyzeResume)
+
+        async function analyzeResume(event) {
+
+            event.preventDefault()
+
+            let file = document.getElementById("resume").files[0]
+            let job = document.getElementById("job").value
+            localStorage.setItem("jobRole", job)
+
+            if (!file || job.trim() == "") {
+                alert("Upload resume and enter job skills")
+                return
+            }
+
+            let formData = new FormData()
+
+            formData.append("file", file)
+            formData.append("job_description", job)
+
+            let res = await fetch("http://127.0.0.1:8000/upload_resume", {
+
+                method: "POST",
+                body: formData
+
+            })
+
+            let data = await res.json()
+
+            missingSkills = data.missing_skills
+
+            localStorage.setItem(
+                "missingSkills",
+                JSON.stringify(missingSkills)
+            )
+
+            document.getElementById("analysis").innerHTML =
+
+                "<b>Strong Skills:</b> " + data.strong_skills +
+                "<br><br>" +
+                "<b>Missing Skills:</b> " + data.missing_skills
+
+
+            /* -------- Resume Improvement Suggestions -------- */
+
+            let feedback = await fetch(
+                "http://127.0.0.1:8000/resume_feedback", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    missing_skills: data.missing_skills
+                })
+
+            })
+
+            let feedbackData = await feedback.json()
+
+            document.getElementById("resume_feedback").innerHTML =
+
+                "<h3>Resume Improvement Suggestions</h3>" +
+                feedbackData.suggestions.join("<br>")
+
+        }
+
+        function startInterview() {
+
+            if (missingSkills.length == 0) {
+
+                alert("Please analyze resume first")
+
+                return
+
+            }
+
+            window.location = "aptitude.html"
+
+        }
+
+    </script>
+
+</body>
+
+</html>

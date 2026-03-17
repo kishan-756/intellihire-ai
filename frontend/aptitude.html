@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Aptitude Round</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        button {
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        #timer {
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h2>Aptitude Round</h2>
+
+    <h3 id="timer"></h3>
+
+    <div id="question"></div>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+
+        let questions = []
+        let index = 0
+        let score = 0
+
+        async function load() {
+
+            let skills = JSON.parse(localStorage.getItem("missingSkills"))
+
+            let jobRole = localStorage.getItem("jobRole")
+
+            let res = await fetch("http://127.0.0.1:8000/start_interview", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    missing_skills: skills,
+                    job_role: jobRole
+                })
+
+            })
+
+            let data = await res.json()
+
+            localStorage.setItem(
+                "interviewData",
+                JSON.stringify(data.interview)
+            )
+
+            questions = data.interview.aptitude
+
+            show()
+
+        }
+
+        function show() {
+
+            let q = questions[index]
+
+            let html = "<h3>" + q.question + "</h3>"
+
+            q.options.forEach(opt => {
+
+                html +=
+                    `<button onclick="select('${opt}')">${opt}</button><br><br>`
+
+            })
+
+            document.getElementById("question").innerHTML = html
+
+        }
+
+        function select(option) {
+
+            if (option === questions[index].answer) {
+                score++
+            }
+
+            index++
+
+            if (index < questions.length) {
+
+                show()
+
+            }
+            else {
+
+                localStorage.setItem("aptitudeScore", score)
+
+                window.location = "dsa.html"
+
+            }
+
+        }
+
+        let time = 1200 // 20 minutes
+
+        setInterval(() => {
+
+            time--
+            
+            let minutes = Math.floor(time / 60);
+            let seconds = time % 60;
+
+            document.getElementById("timer").innerText =
+                "Time Remaining: " + minutes + "m " + seconds + "s";
+
+            if (time <= 0) {
+
+                alert("Time Up")
+
+                localStorage.setItem("aptitudeScore", score)
+
+                window.location = "dsa.html"
+
+            }
+
+        }, 1000)
+
+        load()
+
+    </script>
+
+</body>
+
+</html>

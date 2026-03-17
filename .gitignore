@@ -1,0 +1,27 @@
+# Environments
+backend/venv/
+venv/
+env/
+.env
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dependencies
+*.zip
+
+# OS Files
+.DS_Store
+
+# Databases
+*.hwdb
+*.db
+backend/intellihire.db
+data/intellihire.db
+
+# Temp Files
+temp_resume.pdf
+*.log

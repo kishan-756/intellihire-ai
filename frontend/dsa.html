@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DSA Round</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        textarea {
+            width: 700px;
+            height: 200px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 8px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h2>DSA Coding Round</h2>
+
+    <h3 id="difficulty"></h3>
+    <h3 id="timer"></h3>
+
+    <div id="question"></div>
+
+    <textarea id="code"></textarea>
+
+    <br>
+
+    <button onclick="next()">Submit</button>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+
+        let interview = JSON.parse(localStorage.getItem("interviewData"))
+
+        let questions = interview.dsa
+
+        let index = 0
+        let dsaScore = 0
+
+        let time = 1800; // 30 minutes
+
+        setInterval(() => {
+            time--;
+            
+            let minutes = Math.floor(time / 60);
+            let seconds = time % 60;
+
+            document.getElementById("timer").innerText =
+                "Time Remaining: " + minutes + "m " + seconds + "s";
+
+            if (time <= 0) {
+                alert("Time Up");
+                localStorage.setItem("dsaScore", dsaScore);
+                window.location = "technical.html";
+            }
+        }, 1000);
+
+        function show() {
+
+            let q = questions[index]
+
+            document.getElementById("difficulty").innerText =
+                "Difficulty: " + q.difficulty
+
+            document.getElementById("question").innerText =
+                q.question
+
+        }
+
+        function next() {
+
+            let code = document.getElementById("code").value
+
+            if (code.length > 20) {
+                dsaScore++
+            }
+
+            document.getElementById("code").value = ""
+
+            index++
+
+            if (index < questions.length) {
+
+                show()
+
+            }
+            else {
+
+                localStorage.setItem("dsaScore", dsaScore)
+
+                window.location = "technical.html"
+
+            }
+
+        }
+
+        show()
+
+    </script>
+
+</body>
+
+</html>

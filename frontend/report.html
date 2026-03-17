@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Interview Report</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+
+        button {
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        #feedback {
+            margin-top: 30px;
+            background: #f4f4f4;
+            padding: 15px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h2>Final Interview Report</h2>
+
+    <div id="report"></div>
+
+    <div id="feedback"></div>
+
+    <button onclick="goPractice()">
+        Practice Weak Areas
+    </button>
+
+    <button onclick="window.location='dashboard.html'">
+        Go To Dashboard
+    </button>
+
+    <script>
+        let token = localStorage.getItem("token")
+
+        if (!token) {
+
+            alert("Please login first")
+
+            window.location = "login.html"
+
+        }
+
+        let aptitude = parseInt(localStorage.getItem("aptitudeScore") || 0)
+        let dsa = parseInt(localStorage.getItem("dsaScore") || 0)
+        let technical = parseInt(localStorage.getItem("technicalScore") || 0)
+
+        let total = aptitude + dsa + technical
+
+        document.getElementById("report").innerHTML =
+            "<h3>Aptitude Score: " + aptitude + "</h3>" +
+            "<h3>DSA Score: " + dsa + "</h3>" +
+            "<h3>Technical Score: " + technical + "</h3>" +
+            "<h3>Total Score: " + total + "</h3>"
+
+        async function loadFeedback() {
+
+            let res = await fetch("http://127.0.0.1:8000/ai_feedback", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    aptitude: aptitude,
+                    dsa: dsa,
+                    technical: technical
+                })
+
+            })
+
+            let data = await res.json()
+
+            localStorage.setItem("weaknesses", JSON.stringify(data.weaknesses))
+
+            document.getElementById("feedback").innerHTML =
+
+                "<h3>Weak Areas</h3>" +
+                data.weaknesses.join(", ") +
+
+                "<h3>Recommended Practice</h3>" +
+                data.recommendations.join("<br>")
+
+        }
+
+        function goPractice() {
+
+            window.location = "practice.html"
+
+        }
+
+        loadFeedback()
+
+    </script>
+
+</body>
+
+</html>

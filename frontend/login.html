@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Login</title>
+</head>
+
+<body>
+
+    <h2>Login</h2>
+
+    <input id="email" placeholder="Enter email">
+    <br><br>
+
+    <button onclick="login()">Login</button>
+
+    <br><br>
+
+    <button onclick="googleLogin()">Login with Google</button>
+
+    <script>
+
+        /* -------- Handle Google OAuth redirect -------- */
+
+        const params = new URLSearchParams(window.location.search)
+
+        const urlToken = params.get("token")
+        const email = params.get("email")
+
+        if (urlToken) {
+            localStorage.setItem("token", urlToken)
+            localStorage.setItem("userEmail", email)
+
+            window.location = "dashboard.html"
+        }
+
+
+        /* -------- Normal Email Login -------- */
+
+        async function login() {
+
+            let emailInput = document.getElementById("email").value
+
+            if (!emailInput) {
+                alert("Please enter email")
+                return
+            }
+
+            let res = await fetch("http://127.0.0.1:8000/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: emailInput
+                })
+            })
+
+            let data = await res.json()
+
+            localStorage.setItem("token", data.token)
+            localStorage.setItem("userEmail", emailInput)
+
+            window.location = "dashboard.html"
+        }
+
+
+        /* -------- Google Login -------- */
+
+        function googleLogin() {
+            window.location = "http://127.0.0.1:8000/auth/google"
+        }
+
+    </script>
+
+</body>
+
+</html>
