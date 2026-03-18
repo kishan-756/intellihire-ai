@@ -3,24 +3,7 @@
 
 <head>
     <title>Interview Report</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            margin: 40px;
-        }
-
-        button {
-            padding: 10px;
-            margin-top: 20px;
-        }
-
-        #feedback {
-            margin-top: 30px;
-            background: #f4f4f4;
-            padding: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -101,10 +84,32 @@
 
         }
 
+        async function saveResult() {
+            let email = localStorage.getItem("userEmail")
+            if (!email) return;
+
+            // Prevent multiple saves on reload
+            if (sessionStorage.getItem("interviewSaved") === "true") return;
+            sessionStorage.setItem("interviewSaved", "true");
+
+            await fetch("http://127.0.0.1:8000/save_result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: email,
+                    aptitude: aptitude,
+                    dsa: dsa,
+                    technical: technical
+                })
+            });
+        }
+
         loadFeedback()
+        saveResult()
 
     </script>
 
+    <script src="theme.js"></script>
 </body>
 
 </html>
