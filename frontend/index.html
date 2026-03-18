@@ -45,6 +45,7 @@
         }
 
         let missingSkills = []
+        let resumeAnalyzed = false
 
         document.getElementById("resumeForm")
             .addEventListener("submit", analyzeResume)
@@ -77,6 +78,7 @@
             let data = await res.json()
 
             missingSkills = data.missing_skills
+            resumeAnalyzed = true
 
             localStorage.setItem(
                 "missingSkills",
@@ -85,9 +87,9 @@
 
             document.getElementById("analysis").innerHTML =
 
-                "<b>Strong Skills:</b> " + data.strong_skills +
+                "<b>Strong Skills:</b> " + (data.strong_skills.length > 0 ? data.strong_skills.join(", ") : "None") +
                 "<br><br>" +
-                "<b>Missing Skills:</b> " + data.missing_skills
+                "<b>Missing Skills:</b> " + (data.missing_skills.length > 0 ? data.missing_skills.join(", ") : "None")
 
 
             /* -------- Resume Improvement Suggestions -------- */
@@ -118,7 +120,7 @@
 
         function startInterview() {
 
-            if (missingSkills.length == 0) {
+            if (!resumeAnalyzed) {
 
                 alert("Please analyze resume first")
 

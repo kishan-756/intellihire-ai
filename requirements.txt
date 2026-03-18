@@ -3,3 +3,5 @@ uvicorn
 sqlalchemy
 python-multipart
 ollama
+pypdf
+python-docx

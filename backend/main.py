@@ -12,6 +12,9 @@ import tempfile
 import random
 import json
 import ollama
+import pypdf
+import docx
+import io
 
 from auth import create_token, verify_token
 from ai_feedback import analyze_performance
@@ -117,21 +120,36 @@ def extract_skills(text):
 async def upload_resume(file: UploadFile = File(...), job_description: str = Form(...)):
 
     content = await file.read()
+    filename = file.filename.lower()
 
-    text = content.decode(errors="ignore")
+    if filename.endswith(".pdf"):
+        pdf_reader = pypdf.PdfReader(io.BytesIO(content))
+        text = ""
+        for page in pdf_reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        text = text.lower()
+    elif filename.endswith(".docx"):
+        doc = docx.Document(io.BytesIO(content))
+        text = "\n".join([para.text for para in doc.paragraphs]).lower()
+    else:
+        text = content.decode(errors="ignore").lower()
 
     resume_skills = extract_skills(text)
 
-    job_skills = job_description.lower().split(",")
+    job_skills_raw = job_description.split(",")
 
     strong = []
     missing = []
 
-    for s in job_skills:
+    for s in job_skills_raw:
 
         s = s.strip()
+        if not s:
+            continue
 
-        if s in resume_skills:
+        if s.lower() in text:
             strong.append(s)
 
         else:
